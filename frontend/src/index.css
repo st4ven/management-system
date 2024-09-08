@@ -170,7 +170,8 @@ i {
 	color: black;
     background-color: #f2f2f2;
     border-radius: 10px;
-	width: 30%;
+	width: 32%;
+	height: 30%;
 	padding: 5px;
 	margin-top: 32px;
 }
@@ -188,4 +189,19 @@ i {
 	padding-bottom: 10px;
 	padding-right: 25px;
 	border-radius: 8px;
+}
+
+a.link {
+	background: transparent;
+}
+
+@media (max-width: 630px) {
+	.whole {
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.profile {
+		width: 50%;
+	}
 }

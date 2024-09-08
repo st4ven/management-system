@@ -2,9 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import Header from './components/Header';
 import EmployeeList from './components/EmployeeList';
-import { deleteEmployee, getEmployees, saveEmployee} from './EmployeeService';
+import { deleteEmployee, getEmployees, saveEmployee, updateEmployee} from './api/EmployeeService';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import EmployeeDetail from './components/EmployeeDetail';
+import { toastError, toastSuccess } from './api/ToastService';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   const [data, setData] = useState({});
@@ -25,6 +28,7 @@ function App() {
       setData(data);
     } catch (error) {
       console.error(error.message);
+      toastError(error.message);
     }
   }
 
@@ -45,21 +49,34 @@ function App() {
         account_status: ''
       });
 
+      toastSuccess("Employee added!");
       getAllEmployees();
     } catch (error) {
       console.error(error.message);
+      toastError(error.message);
     }
   };
 
   const navigate = useNavigate();
 
+  const updatedEmployee = async (employee) => {
+    try {
+      await updateEmployee(employee.id, employee);
+      getAllEmployees();
+    } catch (error) {
+      console.error(error.message);
+      toastError(error.message);
+    }
+  }
   const removeEmployee = async (id) => {
     try {
       await deleteEmployee(id);
       navigate('/employees');
+      toastSuccess("Employee deleted!");
       getAllEmployees();
     } catch (error) {
       console.error(error.message);
+      toastError(error.message);
     }
   }
   const toggleModal = show => show ? modalRef.current.showModal() : modalRef.current.close();
@@ -80,7 +97,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Navigate to={"/employees"} />} />
             <Route path="/employees" element={<EmployeeList data={data} />} />
-            <Route path="/employees/:id" element={<EmployeeDetail removeEmployee={removeEmployee}/>} />
+            <Route path="/employees/:id" element={<EmployeeDetail updatedEmployee={updatedEmployee} removeEmployee={removeEmployee}/>} />
           </Routes>
         </div>
       </main>
@@ -125,6 +142,8 @@ function App() {
           </form>
         </div>
       </dialog>
+
+      <ToastContainer />
     </>
   )
 }

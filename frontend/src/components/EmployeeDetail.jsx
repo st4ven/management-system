@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getEmployee } from '../EmployeeService';
+import { getEmployee } from '../api/EmployeeService';
+import { toastSuccess, toastError } from '../api/ToastService';
 
-const EmployeeDetail = ({ removeEmployee }) => {
+const EmployeeDetail = ({ updatedEmployee, removeEmployee }) => {
 
     const [employee, setEmployee] = useState({
         id: '',
@@ -21,7 +22,8 @@ const EmployeeDetail = ({ removeEmployee }) => {
             const { data } = await getEmployee(id);
             setEmployee(data);
         } catch (error) {
-
+            console.error(error.message);
+            toastError(error.message);
         }
     }
 
@@ -29,8 +31,15 @@ const EmployeeDetail = ({ removeEmployee }) => {
         setEmployee({ ...employee, [event.target.name]: event.target.value });
     }
 
+    const onUpdateEmployee = async (event) => {
+        event.preventDefault();
+        await updatedEmployee(employee);
+        toastSuccess("Employee updated!");
+    }
+
     const onRemoveEmployee = async (id) => {
         await removeEmployee(id);
+        fetchEmployee(id);
     }
     useEffect(() => {
         fetchEmployee(id);
@@ -58,7 +67,7 @@ const EmployeeDetail = ({ removeEmployee }) => {
 
                 <div className='profile__settings'>
                     <div>
-                        <form className="form">
+                        <form onSubmit={onUpdateEmployee} className="form">
                             <div className="user-details">
                                 <input type="hidden" defaultValue={employee.id} name="id" required />
                                 <div className="input-box">

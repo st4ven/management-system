@@ -14,8 +14,8 @@ export async function getEmployee(id) {
     return await axios.get(`${API_URL}/${id}`);
 }
 
-export async function updateEmployee(id) {
-    return await axios.put(`${API_URL}/${id}`);
+export async function updateEmployee(id, employee) {
+    return await axios.put(`${API_URL}/${id}`, employee);
 }
 
 export async function deleteEmployee(id) {
