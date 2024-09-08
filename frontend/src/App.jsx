@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import Header from './components/Header';
 import EmployeeList from './components/EmployeeList';
-import { getEmployees, saveEmployee } from './EmployeeService';
+import { getEmployees, saveEmployee, updateEmployee } from './EmployeeService';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import EmployeeDetail from './components/EmployeeDetail';
 
 function App() {
   const [data, setData] = useState({});
@@ -15,6 +16,7 @@ function App() {
     job_title: '',
     account_status: ''
   });
+
   const modalRef = useRef();
 
   const getAllEmployees = async () => {
@@ -48,6 +50,7 @@ function App() {
       console.error(error.message);
     }
   };
+
   const toggleModal = show => show ? modalRef.current.showModal() : modalRef.current.close();
 
   const onChange = (event) => {
@@ -66,6 +69,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Navigate to={"/employees"} />} />
             <Route path="/employees" element={<EmployeeList data={data} />} />
+            <Route path="/employees/:id" element={<EmployeeDetail />} />
           </Routes>
         </div>
       </main>

@@ -165,3 +165,27 @@ i {
 .btn-danger:hover {
 	background-color: #ef0000;
 }
+
+.profile {
+	color: black;
+    background-color: #f2f2f2;
+    border-radius: 10px;
+	width: 30%;
+	padding: 5px;
+	margin-top: 32px;
+}
+
+.whole {
+	display: flex;
+	flex-direction: row;
+	gap: 32px;
+}
+
+.profile__settings {
+	background-color: #f2f2f2;
+	padding-left: 15px;
+	padding-top: 10px;
+	padding-bottom: 10px;
+	padding-right: 25px;
+	border-radius: 8px;
+}
