@@ -8,14 +8,14 @@ app.use(express.json());
 
 // Create a new profile
 app.post('/employees', async (req, res) => {
-  const { name, email, phone_number, job_title, birthday, address } = req.body;
+  const { name, email, phone_number, job_title, account_status, address } = req.body;
   try {
     const query = 
-      `INSERT INTO employees (name, email, phone_number, job_title, birthday, address) 
+      `INSERT INTO employees (name, email, phone_number, job_title, account_status, address) 
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *;`;
 
-    const values = [name, email, phone_number, job_title, birthday, address];
+    const values = [name, email, phone_number, job_title, account_status, address];
 
     const db = await pool.query(query, values);
 
@@ -51,16 +51,16 @@ app.get('/employees/:id', async (req, res) => {
 app.put('/employees/:id', async (req, res) => {
   try {
     const {id} = req.params;
-    const { name, email, phone_number, job_title, birthday, address } = req.body;
+    const { name, email, phone_number, job_title, account_status, address } = req.body;
 
     const query = `
       UPDATE employees
-      SET name = $1, email = $2, phone_number = $3, job_title = $4, birthday = $5, address = $6
+      SET name = $1, email = $2, phone_number = $3, job_title = $4, account_status = $5, address = $6
       WHERE id = $7
       RETURNING *;
       `;
 
-    const values = [name, email, phone_number, job_title, birthday, address, id];
+    const values = [name, email, phone_number, job_title, account_status, address, id];
 
     const updateEmployee = await pool.query(query, values);
 
