@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import Header from './components/Header';
 import EmployeeList from './components/EmployeeList';
-import { getEmployees, saveEmployee, updateEmployee } from './EmployeeService';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { deleteEmployee, getEmployees, saveEmployee} from './EmployeeService';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import EmployeeDetail from './components/EmployeeDetail';
 
 function App() {
@@ -51,6 +51,17 @@ function App() {
     }
   };
 
+  const navigate = useNavigate();
+
+  const removeEmployee = async (id) => {
+    try {
+      await deleteEmployee(id);
+      navigate('/employees');
+      getAllEmployees();
+    } catch (error) {
+      console.error(error.message);
+    }
+  }
   const toggleModal = show => show ? modalRef.current.showModal() : modalRef.current.close();
 
   const onChange = (event) => {
@@ -69,7 +80,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Navigate to={"/employees"} />} />
             <Route path="/employees" element={<EmployeeList data={data} />} />
-            <Route path="/employees/:id" element={<EmployeeDetail />} />
+            <Route path="/employees/:id" element={<EmployeeDetail removeEmployee={removeEmployee}/>} />
           </Routes>
         </div>
       </main>

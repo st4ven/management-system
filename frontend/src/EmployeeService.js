@@ -18,6 +18,6 @@ export async function updateEmployee(id) {
     return await axios.put(`${API_URL}/${id}`);
 }
 
-export async function deleteEmployee(employee) {
+export async function deleteEmployee(id) {
     return await axios.delete(`${API_URL}/${id}`);
 }

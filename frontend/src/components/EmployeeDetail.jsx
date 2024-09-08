@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getEmployee } from '../EmployeeService';
 
-const EmployeeDetail = () => {
+const EmployeeDetail = ({ removeEmployee }) => {
 
     const [employee, setEmployee] = useState({
         id: '',
@@ -24,10 +24,14 @@ const EmployeeDetail = () => {
 
         }
     }
+
     const onChange = (event) => {
         setEmployee({ ...employee, [event.target.name]: event.target.value });
     }
 
+    const onRemoveEmployee = async (id) => {
+        await removeEmployee(id);
+    }
     useEffect(() => {
         fetchEmployee(id);
     }, []);
@@ -83,7 +87,7 @@ const EmployeeDetail = () => {
                                 </div>
                             </div>
                             <div className="form_footer">
-                                <button type='button' className="btn btn-danger">Delete</button>
+                                <button type='button' onClick={() => onRemoveEmployee(id)} className="btn btn-danger">Delete</button>
                                 <button type="submit" className="btn">Save</button>
                             </div>
                         </form>
