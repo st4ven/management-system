@@ -26,5 +26,7 @@ public class Employee {
     private String phone;
     private String address;
     private String status;
-    private String photoUrl;
+
+    @Column(name="profile_image_id", unique=true)
+    private String profile_image_id;
 }

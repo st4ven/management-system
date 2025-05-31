@@ -1,5 +1,7 @@
 package com.steven.employeeapi.employee;
 
+import com.steven.employeeapi.s3.S3Buckets;
+import com.steven.employeeapi.s3.S3Service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,24 +10,19 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-
-import static com.steven.employeeapi.constant.Constant.PHOTO_DIRECTORY;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import java.io.IOException;
+import java.util.UUID;
 
 @Service
 @Slf4j
 @Transactional(rollbackOn = Exception.class)
 @RequiredArgsConstructor
 public class EmployeeService {
+
     private final EmployeeRepository employeeRepository;
+    private final S3Service s3Service;
+    private final S3Buckets s3Buckets;
 
     public Page<Employee> getAllEmployees(int page, int size) {
         return employeeRepository.findAll(PageRequest.of(page, size, Sort.by("name")));
@@ -40,39 +37,71 @@ public class EmployeeService {
     }
 
     public void deleteEmployee(String id) {
-        employeeRepository.deleteById(id);
-    }
-
-    public String uploadPhoto(String id, MultipartFile file) {
         Employee employee = getEmployee(id);
-        String photoUrl = imageFunction.apply(id, file);
-        employee.setPhotoUrl(photoUrl);
-        employeeRepository.save(employee);
 
-        return photoUrl;
+        // get the image ID currently
+        String profileImageId = employee.getProfile_image_id();
+
+        // get the key
+        String key = "profile-images/%s/%s".formatted(id, profileImageId);
+
+        // delete the image from the bucket
+        s3Service.deleteObject(s3Buckets.getEmployee(), key);
+
+        // delete the employee
+        employeeRepository.delete(employee);
     }
 
-    // .png or other file extension
-    private final Function<String, String> fileExtension = fileName -> Optional.of(fileName).filter(name -> name.contains("."))
-            .map(name -> "." + name.substring(fileName.lastIndexOf(".") + 1)).orElse(".png");
+    public String uploadEmployeeProfileImage(String id, MultipartFile file) {
+        // get the employee from the ID
+        Employee employee = getEmployee(id);
 
-    private final BiFunction<String, MultipartFile, String> imageFunction = (id, image) -> {
-        String fileName = id + fileExtension.apply(image.getOriginalFilename());
+        // get the image ID currently
+        String oldImageId = employee.getProfile_image_id();
+
+        // if it exists, delete it from the bucket
+        if (oldImageId != null && !oldImageId.isEmpty()) {
+            String oldImageKey = "profile-images/%s/%s".formatted(id, oldImageId);
+            s3Service.deleteObject(s3Buckets.getEmployee(), oldImageKey);
+        }
 
         try {
-            Path fileStorageLocation = Paths.get(PHOTO_DIRECTORY).toAbsolutePath().normalize();
+            // generate a random image ID
+            String newImageId = UUID.randomUUID().toString();
 
-            if (!Files.exists(fileStorageLocation)) {
-                Files.createDirectories(fileStorageLocation);
-            }
+            // put the object into the S3 bucket
+            s3Service.putObject(
+                    s3Buckets.getEmployee(),
+                    "profile-images/%s/%s".formatted(id, newImageId),
+                    file.getBytes());
 
-            Files.copy(image.getInputStream(), fileStorageLocation.resolve(fileName), REPLACE_EXISTING);
+            // set the profile image ID and save the employee
+            employee.setProfile_image_id(newImageId);
+            employeeRepository.save(employee);
 
-            return ServletUriComponentsBuilder
-                    .fromCurrentContextPath()
-                    .path("/employees/image/" + fileName).toUriString();
-        } catch (Exception exception) {
-            throw new RuntimeException("Unable to save image");
+            return newImageId;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-    };
+
+    }
+
+    public byte[] getEmployeeProfileImage(String id) {
+        // get the employee
+        Employee employee = getEmployee(id);
+
+        // get the profile image ID
+        String profileImageId = employee.getProfile_image_id();
+
+        // check if it is null or empty
+        if (profileImageId == null || profileImageId.isBlank()) {
+            throw new IllegalStateException("Employee does not have a profile image");
+        }
+
+        // return the image
+        return s3Service.getObject(
+                s3Buckets.getEmployee(),
+                "profile-images/%s/%s".formatted(id, profileImageId)
+        );
+    }
 }

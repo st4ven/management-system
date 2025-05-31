@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom';
-import { getEmployee } from '../api/EmployeeService';
+import { getEmployee, getProfileImage } from '../api/EmployeeService';
 import { toastSuccess } from '../api/ToastService';
 
 const EmployeeDetail = ({ updateEmployee, updateImage, removeEmployee }) => {
@@ -11,9 +11,10 @@ const EmployeeDetail = ({ updateEmployee, updateImage, removeEmployee }) => {
         phone: '',
         address: '',
         title: '',
-        status: '',
-        photoUrl: ''
+        status: ''
     });
+
+    const [imageUrl, setImageUrl] = useState(null);
 
     const inputRef = useRef();
 
@@ -23,6 +24,10 @@ const EmployeeDetail = ({ updateEmployee, updateImage, removeEmployee }) => {
         try {
             const { data } = await getEmployee(id);
             setEmployee(data);
+
+            const photoUrl = await getProfileImage(id);
+
+            setImageUrl(photoUrl);
         } catch (error) {
             console.error(error.message);
         }
@@ -36,9 +41,11 @@ const EmployeeDetail = ({ updateEmployee, updateImage, removeEmployee }) => {
         try {
             const formData = new FormData();
             formData.append('file', file, file.name);
-            formData.append('id', id);
-            await updateImage(formData);
-            setEmployee((prev) => ({ ...prev, photoUrl: `${prev.photoUrl}?updated_at=${new Date().getTime()}` }));
+            await updateImage(id, formData);
+
+            const photoUrl = await getProfileImage(id);
+            setImageUrl(photoUrl);
+
             toastSuccess("Photo updated!");
         } catch (error) {
             console.log(error);
@@ -70,13 +77,13 @@ const EmployeeDetail = ({ updateEmployee, updateImage, removeEmployee }) => {
                 <Link to={'/employees'} className='link'><i className='bi bi-arrow-left'></i> Back to list</Link>
                 <div className='profile'>
                     <div className='profile__details'>
-                        {employee.photoUrl && (
-                            <img src={employee.photoUrl} alt="profile" />
+                        {imageUrl && (
+                            <img src={imageUrl} alt="profile" />
                         )}
 
                         <div className='profile__metadata'>
                             <p className='profile__name'>{employee.name}</p>
-                            <p className='profile__muted'>JPG, GIF, or PNG. Max size of 10MG</p>
+                            <p className='profile__muted'>JPG, GIF, or PNG. Max size of 10MB</p>
                             <button onClick={selectImage} className='btn'><i className='bi bi-cloud-upload'></i> Change Photo</button>
                         </div>
                     </div>

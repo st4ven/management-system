@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import './App.css'
-import { deleteEmployee, getEmployees, saveEmployee, updatePhoto } from './api/EmployeeService';
+import { deleteEmployee, getEmployees, saveEmployee, uploadProfileImage } from './api/EmployeeService';
 import Header from './components/Header';
 import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import EmployeeList from './components/EmployeeList';
@@ -53,9 +53,8 @@ function App() {
       const formData = new FormData();
 
       formData.append('file', file, file.name);
-      formData.append('id', data.id);
 
-      const { data: photoUrl } = await updatePhoto(formData);
+      const { data: photoUrl } = await uploadProfileImage(data.id, formData);
 
       // close the modal
       toggleModal(false);
@@ -107,9 +106,9 @@ function App() {
     }
   }
 
-  const updateImage = async (formData) => {
+  const updateImage = async (id, formData) => {
     try {
-      const { data: photoUrl } = await updatePhoto(formData);
+      const { data: photoUrl } = await uploadProfileImage(id, formData);
     } catch (error) {
       console.log(error);
     }

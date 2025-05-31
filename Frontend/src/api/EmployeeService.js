@@ -25,3 +25,14 @@ export async function updatePhoto(formData) {
 export async function deleteEmployee(id) {
     return await axios.delete(`${API_URL}/${id}`);
 }
+
+export async function uploadProfileImage(id, formData) {
+    return await axios.post(`${API_URL}/${id}/profile-image`, formData);
+}
+
+export async function getProfileImage(id) {
+    const response = await axios.get(`${API_URL}/${id}/profile-image`, {
+        responseType: 'blob',
+    });
+    return URL.createObjectURL(response.data);
+}
